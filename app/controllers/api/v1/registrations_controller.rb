@@ -1,3 +1,5 @@
+require  './app/models/api/registration_request'
+
 class Api::V1::RegistrationsController < ApplicationController
 
     # GET /registrations
@@ -16,32 +18,37 @@ class Api::V1::RegistrationsController < ApplicationController
     def create
         registrationParameters = registration_params
         userId = -1
-        collegeExists = College.where(id: registrationParameters['college_id']).exists?
+        if !registrationParameters.isValid
+            render json: registrationParameters.errors.to_json, status: 400
+            return
+        end
+
+        collegeExists = College.where(id: registrationParameters.collegeId).exists?
 
         if !collegeExists
             render json: { error: 'College with specified ID does not exist'}.to_json, status: 400
             return
         end
 
-        exam = Exam.where(college_id: registrationParameters['college_id'], id: registrationParameters['exam_id'])
+        exam = Exam.where(college_id: registrationParameters.collegeId, id: registrationParameters.examId)
         if exam.present?
             examWindows = ExamWindow.where(exam_id: exam.first.attributes['id'])
             
             validWindow = false
             examWindows.each do |window|
                 windowData = window.as_json
-                if registrationParameters['start_time'] >= windowData['start'] && registrationParameters['start_time'] <= windowData['end']
+                if registrationParameters.start >= windowData['start'] && registrationParameters.start <= windowData['end']
                     validWindow = true
                 end
             end
 
             if validWindow
                 
-                user = User.where(first_name: registrationParameters['first_name'], last_name: registrationParameters['last_name'], 
-                    phone_number: registrationParameters['phone_number'])
+                user = User.where(first_name: registrationParameters.firstName, last_name: registrationParameters.lastName, 
+                    phone_number: registrationParameters.phoneNumber)
                 if !user.exists?
-                    user = User.new(first_name: registrationParameters['first_name'], last_name: registrationParameters['last_name'], 
-                        phone_number: registrationParameters['phone_number'])
+                    user = User.new(first_name: registrationParameters.firstName, last_name: registrationParameters.lastName, 
+                        phone_number: registrationParameters.phoneNumber)
                     if !user.save
                         render json: { error: 'Unable to create user.'}.to_json, status: 400
                     end
@@ -49,7 +56,8 @@ class Api::V1::RegistrationsController < ApplicationController
                     user = user.first.as_json
                 end
 
-                @registration = Registration.new(exam_id: registrationParameters['exam_id'], user_id: user['id'], start_time: registrationParameters['start_time'])
+                @registration = Registration.new(exam_id: registrationParameters.examId, user_id: user['id'], 
+                    start_time: registrationParameters.start)
                 if @registration.save
                     render json: @registration
                 else
@@ -66,6 +74,6 @@ class Api::V1::RegistrationsController < ApplicationController
     private
 
     def registration_params
-      params.permit(:first_name, :last_name, :phone_number, :college_id, :exam_id, :start_time)
+       Api::RegistrationRequest.new(params.permit(:first_name, :last_name, :phone_number, :college_id, :exam_id, :start_time))
     end
 end
