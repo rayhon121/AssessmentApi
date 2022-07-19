@@ -23,7 +23,7 @@
           </va-alert>
       </template>
       <template #right>
-        <a href="http://www.github.com">
+        <a href="https://github.com/rayhon121/AssessmentApi">
         <va-button icon="github" flat=true>Github</va-button></a>
       </template>
     </va-navbar>
