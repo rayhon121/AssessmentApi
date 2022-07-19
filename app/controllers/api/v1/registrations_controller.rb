@@ -16,6 +16,7 @@ class Api::V1::RegistrationsController < ApplicationController
 
     # POST /registrations
     def create
+        logger.info "Creating new registration" 
         registrationParameters = registration_params
         userId = -1
 
@@ -28,6 +29,7 @@ class Api::V1::RegistrationsController < ApplicationController
         # check if college exists
         collegeExists = College.where(id: registrationParameters.collegeId).exists?
         if !collegeExists
+            logger.error "Registration failed due to invalid college ID"
             render json: { error: 'College with specified ID does not exist'}.to_json, status: 400
             return
         end
@@ -35,6 +37,7 @@ class Api::V1::RegistrationsController < ApplicationController
         # checks if the given exam collge combination exists
         exam = Exam.where(college_id: registrationParameters.collegeId, id: registrationParameters.examId)
         if !exam.present?
+            logger.error "Registration failed due to invalid exam and college ID combination"
             render json: { error: 'Exam for the specified college does not exist.'}.to_json, status: 400
             return
         end
@@ -50,6 +53,7 @@ class Api::V1::RegistrationsController < ApplicationController
         end
 
         if !validWindow
+            logger.error "Registration failed due to start time falling outside the exam time windows"
             render json: { error: 'Start time is not within any valid exam window.'}.to_json, status: 400
             return
         end
@@ -62,6 +66,7 @@ class Api::V1::RegistrationsController < ApplicationController
             user = User.new(first_name: registrationParameters.firstName, last_name: registrationParameters.lastName, 
                 phone_number: registrationParameters.phoneNumber)
             if !user.save
+                logger.error "Insertion of user into DB failed"
                 render json: { error: 'Unable to create user.'}.to_json, status: 400
                 return
             end
@@ -75,6 +80,7 @@ class Api::V1::RegistrationsController < ApplicationController
         if @registration.save
             render json: @registration.slice(:id, :exam_id, :user_id, :start_time)
         else
+            logger.error "Insertion of registration into the DB failed"
             render json: { error: 'Unable to create registration.'}.to_json, status: 400
         end          
     end
