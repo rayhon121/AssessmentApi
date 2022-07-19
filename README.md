@@ -1,9 +1,7 @@
 # Assessment API
 
-## Demo
-
 ## Overview
-API that allows you to register a student with an exam. 
+API that allows you to register a student with an exam. Please visit the [Demo App](https://blooming-spire-54864.herokuapp.com/) that uses the API.
 
 ### Request Format
 ```json
@@ -45,19 +43,19 @@ POST /api/v1/registrations
 
 ## Build Instructions
 - DB
--- Uses SQLite 3
+  - Uses SQLite 3
 - SPA
--- Production SPA has been created and placed in the public directory so building the SPA code is unnecessary
--- If the SPA needs to run independently, you can do 
---- yarn install
---- yarn serve
+  - Production SPA has been created and placed in the public directory so building the SPA code is unnecessary
+  - If the SPA needs to run independently, you can do 
+    - yarn install
+    - yarn serve
 - API
--- bundler install
--- rails db:create
--- rails db:migrate
--- rails server
+  - bundler install
+  - rails db:create
+  - rails db:migrate
+  - rails server
 - Tests
--- rails test
+  - rails test
 
 ## Assumptions
 - Exam can only be linked to a single college
